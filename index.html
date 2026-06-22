@@ -650,18 +650,42 @@
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
     <script>
         // ==================== STATE ====================
-        const peerServerConfig = {
+        // Configuration commune pour les serveurs STUN / TURN
+        const iceServers = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            {
+                urls: 'turn:turn.metered.ca:443?transport=tcp',
+                username: 'openrelayproject',
+                credential: 'openrelayproject'
+            },
+            {
+                urls: 'turn:turn.metered.ca:443?transport=udp',
+                username: 'openrelayproject',
+                credential: 'openrelayproject'
+            }
+        ];
+
+        // Objet de configuration pour PeerJS (utilisé par l'hôte)
+        const hostPeerConfig = {
             host: '0.peerjs.com',
             port: 443,
             secure: true,
-            debug: 0
+            config: { iceServers: iceServers }
+        };
+
+        // Objet de configuration pour l'invité (sans ID fixe)
+        const guestPeerConfig = {
+            host: '0.peerjs.com',
+            port: 443,
+            secure: true,
+            config: { iceServers: iceServers }
         };
 
         let localStream = null;
         let screenShareStream = null;
-        let currentPeer = null;        // PeerJS instance
-        let currentCall = null;       // PeerJS media call
-        let chatConnection = null;    // PeerJS data connection for chat
+        let currentPeer = null;
+        let currentCall = null;
+        let chatConnection = null;
         let roomCode = '';
 
         let isMicMuted = false;
@@ -879,7 +903,6 @@
                 dom.videoGrid.classList.add('with-screenshare');
                 updateVideoGridLayout();
 
-                // Replace video track in the ongoing call
                 if (currentCall && currentCall.peerConnection) {
                     const sender = currentCall.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
                     const videoTrack = displayStream.getVideoTracks()[0];
@@ -909,7 +932,6 @@
                 screenShareStream = null;
             }
             isScreenSharing = false;
-            // Restore camera track
             if (currentCall && currentCall.peerConnection && localStream) {
                 const camTrack = localStream.getVideoTracks().find(t => !t.label.includes('screen'));
                 if (camTrack) {
@@ -1040,8 +1062,9 @@
                 return;
             }
 
-            // Create peer with fixed ID (the room code)
-            currentPeer = new Peer(roomCode, peerServerConfig);
+            // Hôte avec ID fixe (le code de la room)
+            currentPeer = new Peer(roomCode, hostPeerConfig);
+
             currentPeer.on('open', (id) => {
                 console.log('Host peer open, ID:', id);
                 updateStatus('connecting', 'Waiting for guest...');
@@ -1060,7 +1083,6 @@
                 updateStatus('error', 'Error');
             });
 
-            // Incoming call
             currentPeer.on('call', async (call) => {
                 console.log('Incoming call from guest');
                 currentCall = call;
@@ -1068,7 +1090,6 @@
                 setupCallEvents(call);
             });
 
-            // Incoming chat connection
             currentPeer.on('connection', (conn) => {
                 console.log('Incoming data connection');
                 chatConnection = conn;
@@ -1098,16 +1119,15 @@
                 return;
             }
 
-            // Guest uses random ID
-            currentPeer = new Peer(peerServerConfig);
+            // Invité sans ID (aléatoire)
+            currentPeer = new Peer(guestPeerConfig);
+
             currentPeer.on('open', (id) => {
                 console.log('Guest peer open, ID:', id);
-                // Connect to host
                 const call = currentPeer.call(roomCode, localStream);
                 currentCall = call;
                 setupCallEvents(call);
 
-                // Open chat data channel
                 const conn = currentPeer.connect(roomCode, { reliable: true });
                 chatConnection = conn;
                 setupChatConnection(conn);
@@ -1123,18 +1143,17 @@
         function setupCallEvents(call) {
             call.on('stream', (remoteStream) => {
                 console.log('Received remote stream');
-                // Check if it's a screen share (no audio track or labeled as screen)
                 const videoTracks = remoteStream.getVideoTracks();
                 const audioTracks = remoteStream.getAudioTracks();
                 if (videoTracks.length > 0 && audioTracks.length === 0) {
-                    // Assume screen share
+                    // Probablement un partage d'écran
                     remoteScreenStream = remoteStream;
                     dom.screenshareVideo.srcObject = remoteStream;
                     dom.screenshareContainer.style.display = 'flex';
                     dom.videoGrid.classList.add('with-screenshare');
                     addChatMessage('Peer is sharing their screen', 'system');
                 } else {
-                    // Regular camera
+                    // Flux caméra normal
                     dom.remoteVideo.srcObject = remoteStream;
                     dom.remotePlaceholder.style.display = 'none';
                     dom.remoteVideo.style.display = 'block';
@@ -1153,7 +1172,6 @@
                 showToast('Call error');
             });
 
-            // When connection established
             const checkConnection = setInterval(() => {
                 if (call.peerConnection && call.peerConnection.connectionState === 'connected') {
                     clearInterval(checkConnection);
@@ -1182,6 +1200,18 @@
                 console.error('Chat error:', err);
             });
         }
+
+        // ==================== PLEIN ÉCRAN POUR LE PARTAGE D'ÉCRAN ====================
+        dom.screenshareContainer.addEventListener('dblclick', () => {
+            const video = dom.screenshareVideo;
+            if (video.requestFullscreen) {
+                video.requestFullscreen();
+            } else if (video.webkitRequestFullscreen) {
+                video.webkitRequestFullscreen();
+            } else if (video.msRequestFullscreen) {
+                video.msRequestFullscreen();
+            }
+        });
 
         // ==================== INIT ====================
         updateControlButtons();
