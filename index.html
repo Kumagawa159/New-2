@@ -147,14 +147,12 @@
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             grid-auto-rows: 1fr;
         }
-        /* For desktop: explicit layouts */
         @media (min-width: 769px) {
             .video-grid { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
             .video-grid.single-screen { grid-template-columns: 1fr; grid-template-rows: 1fr; }
             .video-grid.one-remote { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
             .video-grid.with-screenshare { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
         }
-        /* Mobile: stack all videos vertically */
         @media (max-width: 768px) {
             .video-grid {
                 display:flex;
@@ -163,7 +161,7 @@
                 padding:4px;
             }
             .video-container { flex:1; min-height:0; }
-            .video-container.screenshare-container { order:-1; } /* screen share on top */
+            .video-container.screenshare-container { order:-1; }
         }
 
         .video-container {
@@ -226,9 +224,7 @@
             z-index:5;
             padding-bottom: max(10px, var(--safe-bottom));
         }
-        @media (max-width: 768px) {
-            .controls-bar { gap:6px; padding:8px 10px; }
-        }
+        @media (max-width: 768px) { .controls-bar { gap:6px; padding:8px 10px; } }
         .control-btn {
             width: 44px; height: 44px;
             border-radius:50%;
@@ -243,9 +239,7 @@
             flex-shrink:0;
             touch-action:manipulation;
         }
-        @media (max-width: 480px) {
-            .control-btn { width:40px; height:40px; font-size:16px; }
-        }
+        @media (max-width: 480px) { .control-btn { width:40px; height:40px; font-size:16px; } }
         .control-btn:hover { background:#4a4d55; transform:translateY(-1px); }
         .control-btn:active { transform:scale(0.95); }
         .control-btn.active-muted { background:var(--danger); color:#fff; }
@@ -256,9 +250,7 @@
             background:var(--danger); color:#fff;
             width:50px; height:50px; font-size:22px;
         }
-        @media (max-width: 480px) {
-            .control-btn.hangup { width:44px; height:44px; font-size:20px; }
-        }
+        @media (max-width: 480px) { .control-btn.hangup { width:44px; height:44px; font-size:20px; } }
         .control-btn.hangup:hover { background:#ff1f24; box-shadow:0 4px 16px rgba(237,66,69,0.5); }
         .control-btn .tooltip {
             position:absolute; bottom:110%;
@@ -285,9 +277,7 @@
             box-shadow: var(--shadow);
         }
         .chat-panel.open { right:0; }
-        @media (max-width: 600px) {
-            .chat-panel { width:100%; right:-100%; }
-        }
+        @media (max-width: 600px) { .chat-panel { width:100%; right:-100%; } }
         .chat-header { padding:14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-weight:700; }
         .chat-close { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:18px; padding:4px 8px; border-radius:var(--radius-xs); }
         .chat-close:hover { color:#fff; background:var(--bg-tertiary); }
@@ -379,7 +369,6 @@
         ::-webkit-scrollbar-thumb { background:#555; border-radius:4px; }
         ::-webkit-scrollbar-thumb:hover { background:#777; }
 
-        /* Extra mobile adjustments */
         @media (max-width: 480px) {
             .sidebar-header { padding:14px 10px; }
             .sidebar-title { font-size:14px; }
@@ -485,7 +474,6 @@
 
     <div class="toast" id="toast"></div>
 
-    <!-- PeerJS library -->
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
     <script>
         // ==================== STATE ====================
@@ -592,21 +580,46 @@
             }
         }
 
+        // ★★★ FIXED: explicit audio constraints for echo cancellation ★★★
         async function getLocalMedia(audio = true, video = true) {
+            const constraints = {};
+            if (video) {
+                constraints.video = {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'user'
+                };
+            }
+            if (audio) {
+                constraints.audio = {
+                    echoCancellation: { exact: true },
+                    noiseSuppression: { exact: true },
+                    autoGainControl: { exact: true },
+                };
+            }
             try {
-                return await navigator.mediaDevices.getUserMedia({
-                    audio: audio,
-                    video: video ? { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' } : false,
-                });
+                return await navigator.mediaDevices.getUserMedia(constraints);
             } catch (err) {
-                if (video && err.name === 'NotAllowedError') {
-                    try {
-                        const audioOnly = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                        showToast('Camera denied – audio only');
-                        return audioOnly;
-                    } catch (e) { throw new Error('Camera and microphone access required.'); }
+                console.warn('Perfect audio constraints failed, falling back to basic', err);
+                // Fallback to basic audio if the exact flags aren't supported
+                const fallback = {};
+                if (video) fallback.video = constraints.video;
+                if (audio) fallback.audio = true;
+                try {
+                    return await navigator.mediaDevices.getUserMedia(fallback);
+                } catch (err2) {
+                    if (video && err2.name === 'NotAllowedError') {
+                        // Try audio only
+                        try {
+                            const audioOnly = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                            showToast('Camera denied – audio only');
+                            return audioOnly;
+                        } catch (e) {
+                            throw new Error('Camera and microphone access required.');
+                        }
+                    }
+                    throw err2;
                 }
-                throw err;
             }
         }
 
@@ -634,7 +647,6 @@
             if (hasScreen) dom.videoGrid.classList.add('with-screenshare');
             else if (hasRemote) dom.videoGrid.classList.add('one-remote');
             else dom.videoGrid.classList.add('single-screen');
-            // On mobile, the flex column handles stacking; the classes are for desktop grid
         }
 
         function toggleChat() {
