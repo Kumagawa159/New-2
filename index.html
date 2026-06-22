@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>PrivateLink · Mobile Fit</title>
+  <title>PrivateLink · Sound Fixed</title>
   <style>
     :root {
       --bg-primary: #1a1b1e;
@@ -34,7 +34,6 @@
       user-select: none;
     }
 
-    /* Video stage – now uses contain to fit all screens */
     .video-stage {
       position: fixed;
       inset: 0;
@@ -43,27 +42,19 @@
     }
 
     .remote-video-wrapper {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
     }
     .remote-video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain; /* 🔥 ZOOM OUT / FIT */
+      width: 100%; height: 100%;
+      object-fit: contain;
     }
 
-    /* Local video – larger, draggable overlay */
     .local-video-container {
       position: absolute;
-      width: 30vw;
-      max-width: 160px;
-      min-width: 100px;
+      width: 30vw; max-width: 160px; min-width: 100px;
       aspect-ratio: 3/4;
-      bottom: 100px;
-      right: 16px;
+      bottom: 100px; right: 16px;
       border-radius: var(--radius-sm);
       overflow: hidden;
       border: 2px solid rgba(255,255,255,0.4);
@@ -74,58 +65,34 @@
       cursor: move;
     }
     .local-video-container video {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       object-fit: cover;
     }
     .local-video-placeholder {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--text-muted);
-      font-size: 12px;
-      text-align: center;
+      display: flex; align-items: center; justify-content: center;
+      height: 100%; color: var(--text-muted); font-size: 12px;
     }
 
-    /* Screen share overlay (full-screen when shown) */
     .screenshare-overlay {
-      position: absolute;
-      inset: 0;
-      background: #000;
-      z-index: 15;
+      position: absolute; inset: 0;
+      background: #000; z-index: 15;
       display: none;
     }
     .screenshare-overlay video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain; /* fit mode for screen share too */
+      width: 100%; height: 100%;
+      object-fit: contain;
     }
     .fullscreen-btn {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      z-index: 20;
-      background: rgba(0,0,0,0.6);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 40px; height: 40px;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(6px);
-      cursor: pointer;
+      position: absolute; top: 12px; right: 12px;
+      z-index: 20; background: rgba(0,0,0,0.6); color:#fff;
+      border: none; border-radius: 50%; width: 40px; height: 40px;
+      font-size: 20px; display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(6px); cursor: pointer;
     }
 
-    /* Controls (hidden, tap to show) */
     .controls-bar {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      display: flex;
-      justify-content: center;
-      gap: 8px;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 8px;
       padding: 12px 20px;
       padding-bottom: max(12px, var(--safe-bottom));
       background: linear-gradient(transparent, rgba(0,0,0,0.8));
@@ -137,17 +104,10 @@
 
     .ctrl-btn {
       width: 48px; height: 48px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(44,45,48,0.9);
-      color: #fff;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      backdrop-filter: blur(8px);
-      transition: background 0.2s;
+      border-radius: 50%; border: none;
+      background: rgba(44,45,48,0.9); color: #fff;
+      font-size: 20px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; backdrop-filter: blur(8px); transition: background 0.2s;
     }
     .ctrl-btn:active { background: var(--accent); }
     .ctrl-btn.muted { background: var(--danger); }
@@ -156,18 +116,15 @@
     .hangup-btn { background: var(--danger); width: 56px; height: 56px; font-size: 24px; }
     @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.5; } }
 
-    /* Connection overlay */
     .connect-overlay {
       position: fixed; inset: 0;
-      background: rgba(26,27,30,0.98);
-      z-index: 100; display: flex;
-      align-items: center; justify-content: center;
+      background: rgba(26,27,30,0.98); z-index: 100;
+      display: flex; align-items: center; justify-content: center;
       backdrop-filter: blur(10px);
     }
     .connect-card {
-      background: var(--bg-secondary);
-      border-radius: var(--radius); padding: 24px;
-      width: 90%; max-width: 360px;
+      background: var(--bg-secondary); border-radius: var(--radius);
+      padding: 24px; width: 90%; max-width: 360px;
       border: 1px solid var(--border); text-align: center;
     }
     .connect-input {
@@ -180,21 +137,18 @@
     .btn {
       padding: 12px 24px; border-radius: 30px;
       border: none; font-weight: 600; font-size: 14px;
-      margin: 6px; cursor: pointer;
-      transition: all 0.2s; font-family: var(--font);
+      margin: 6px; cursor: pointer; transition: all 0.2s;
+      font-family: var(--font);
     }
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
     .error-text { color: var(--danger); font-size: 13px; margin-top: 8px; }
 
-    /* Chat & Sidebar */
     .chat-panel, .sidebar {
       position: fixed; top: 0; bottom: 0;
       width: 85%; max-width: 320px;
-      background: var(--bg-secondary);
-      z-index: 50;
-      transition: transform 0.25s;
-      display: flex; flex-direction: column;
+      background: var(--bg-secondary); z-index: 50;
+      transition: transform 0.25s; display: flex; flex-direction: column;
     }
     .chat-panel { right: -100%; border-left: 1px solid var(--border); }
     .chat-panel.open { right: 0; }
@@ -247,6 +201,15 @@
     }
     .sidebar-toggle { left:12px; }
     .chat-toggle { right:12px; }
+
+    /* Remote audio mute button */
+    .remote-mute-btn {
+      position: absolute; top: 12px; left: 12px;
+      z-index: 20; background: rgba(0,0,0,0.6); color:#fff;
+      border: none; border-radius: 50%; width: 40px; height: 40px;
+      font-size: 18px; display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(6px); cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -270,6 +233,7 @@
   <div class="video-stage" id="videoStage">
     <div class="remote-video-wrapper">
       <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
+      <button class="remote-mute-btn" id="remoteMuteBtn" onclick="toggleRemoteAudio()" title="Mute remote audio">🔊</button>
     </div>
     <div class="local-video-container" id="localVideoContainer">
       <video id="localVideo" autoplay muted playsinline></video>
@@ -343,6 +307,7 @@
     let roomCode = '';
     let micMuted = false, camOff = false, screenSharing = false, recording = false;
     let mediaRecorder = null, recordedChunks = [];
+    let remoteAudioMuted = false;
 
     const $ = (s) => document.querySelector(s);
     const els = {
@@ -355,6 +320,7 @@
       screenshareOverlay: $('#screenshareOverlay'),
       screenshareVideo: $('#screenshareVideo'),
       fullscreenBtn: $('#fullscreenBtn'),
+      remoteMuteBtn: $('#remoteMuteBtn'),
       recIndicator: $('#recIndicator'),
       controlsBar: $('#controlsBar'),
       micBtn: $('#micBtn'), camBtn: $('#camBtn'),
@@ -414,23 +380,51 @@
       window.addEventListener('touchend', () => { dragging = false; });
     })();
 
-    // ── Media with echo cancellation ──
+    // ── Media with PROPER echo cancellation (ideal, not exact) ──
     async function getLocalMedia(audio = true, video = true) {
       const constraints = {};
       if (video) constraints.video = { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' };
-      if (audio) constraints.audio = {
-        echoCancellation: { exact: true },
-        noiseSuppression: { exact: true },
-        autoGainControl: { exact: true }
-      };
+      if (audio) {
+        constraints.audio = {
+          echoCancellation: { ideal: true },
+          noiseSuppression: { ideal: true },
+          autoGainControl: { ideal: true }
+        };
+      }
       try {
         return await navigator.mediaDevices.getUserMedia(constraints);
       } catch (e) {
-        return await navigator.mediaDevices.getUserMedia({ video: video, audio: audio });
+        console.warn('Ideal constraints failed, trying with explicit processing', e);
+        // Second attempt: explicitly request processing
+        try {
+          return await navigator.mediaDevices.getUserMedia({
+            video: video ? constraints.video : false,
+            audio: audio ? {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            } : false
+          });
+        } catch (e2) {
+          console.warn('Processing constraints failed, last resort basic', e2);
+          // Last resort: basic audio
+          return await navigator.mediaDevices.getUserMedia({
+            video: video,
+            audio: audio
+          });
+        }
       }
     }
 
     function stopStream(s) { if (s) s.getTracks().forEach(t => t.stop()); }
+
+    // ── Remote audio mute toggle ──
+    function toggleRemoteAudio() {
+      remoteAudioMuted = !remoteAudioMuted;
+      els.remoteVideo.muted = remoteAudioMuted;
+      els.remoteMuteBtn.textContent = remoteAudioMuted ? '🔇' : '🔊';
+      toast(remoteAudioMuted ? 'Remote audio muted' : 'Remote audio on');
+    }
 
     // ── UI updates ──
     function updateButtons() {
@@ -473,6 +467,9 @@
         const vt = displayStream.getVideoTracks()[0];
         if (sender && vt) await sender.replaceTrack(vt);
         else if (vt) call.peerConnection.addTrack(vt, displayStream);
+        // Also add audio track if present
+        const at = displayStream.getAudioTracks()[0];
+        if (at) call.peerConnection.addTrack(at, displayStream);
         updateButtons();
         toast('Screen sharing started');
       } catch (err) { if (err.name !== 'AbortError') toast('Screen share failed'); }
@@ -487,6 +484,12 @@
         if (camTrack) {
           const sender = call.peerConnection.getSenders().find(s => s.track?.kind === 'video');
           if (sender) sender.replaceTrack(camTrack).catch(() => {});
+        }
+        // Restore original audio track if needed
+        const audioTrack = localStream.getAudioTracks()[0];
+        if (audioTrack) {
+          const audioSender = call.peerConnection.getSenders().find(s => s.track?.kind === 'audio');
+          if (audioSender) audioSender.replaceTrack(audioTrack).catch(() => {});
         }
       }
       updateButtons();
@@ -524,7 +527,6 @@
       if (confirm('End call?')) { disconnect(); els.connectOverlay.style.display = 'flex'; els.videoStage.style.display = 'none'; }
     }
 
-    // Fullscreen for screen share
     function toggleFullscreen() {
       const el = els.screenshareVideo;
       if (el.requestFullscreen) el.requestFullscreen();
@@ -579,6 +581,10 @@
     function setupCallEvents(c) {
       c.on('stream', remoteStream => {
         els.remoteVideo.srcObject = remoteStream;
+        // Ensure remote video is NOT muted initially
+        els.remoteVideo.muted = false;
+        remoteAudioMuted = false;
+        els.remoteMuteBtn.textContent = '🔊';
         els.statusDot.className = 'status-dot connected';
         els.statusText.textContent = 'Connected';
         toast('🔒 Connected');
